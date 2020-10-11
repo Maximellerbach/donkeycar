@@ -97,16 +97,13 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None, camera_type
               threaded=True)
 
     else:
-        if cfg.DONKEY_GYM:
-            from donkeycar.parts.dgym import DonkeyGymEnv
-
         inputs = []
-        threaded = True
+        outputs = []
         if cfg.DONKEY_GYM:
             from donkeycar.parts.dgym import DonkeyGymEnv 
             cam = DonkeyGymEnv(cfg.DONKEY_SIM_PATH, host=cfg.SIM_HOST, env_name=cfg.DONKEY_GYM_ENV_NAME, conf=cfg.GYM_CONF, delay=cfg.SIM_ARTIFICIAL_LATENCY)
-            threaded = True
-            inputs = ['angle', 'throttle']
+            inputs = ['angle', 'throttle', 'brake']
+            outputs = ['info']
         elif cfg.CAMERA_TYPE == "PICAM":
             from donkeycar.parts.camera import PiCamera
             cam = PiCamera(image_w=cfg.IMAGE_W, image_h=cfg.IMAGE_H, image_d=cfg.IMAGE_DEPTH, framerate=cfg.CAMERA_FRAMERATE, vflip=cfg.CAMERA_VFLIP, hflip=cfg.CAMERA_HFLIP)
@@ -134,7 +131,7 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None, camera_type
         else:
             raise(Exception("Unkown camera type: %s" % cfg.CAMERA_TYPE))
 
-        V.add(cam, inputs=inputs, outputs=['cam/image_array'], threaded=threaded)
+        V.add(cam, inputs=inputs, outputs=['cam/image_array']+outputs, threaded=True)
 
     if use_joystick or cfg.USE_JOYSTICK_AS_DEFAULT:
         #modify max_throttle closer to 1.0 to have more power
